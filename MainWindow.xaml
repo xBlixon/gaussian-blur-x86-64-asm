@@ -5,8 +5,94 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:gaussian_blur_x86_64_asm"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1000">
-    <Grid>
+        Title="MainWindow"
+        Height="650" Width="1000"
+        MinHeight="300" MinWidth="600"
+        
+        >
 
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <!-- Image-->
+        <Border Grid.Row="0" 
+                BorderBrush="#CCC" 
+                BorderThickness="1" 
+                Margin="12" 
+                Background="#F9F9F9"
+                CornerRadius="4">
+            <Button Click="Image_Select_Click" 
+                    Cursor="Hand"
+                    ToolTip="Click to select an input image">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="Transparent">
+                            <Image x:Name="image" 
+                                   Stretch="Uniform"
+                                   Source="pack://application:,,,/imagePlaceholder.png"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </Border>
+        
+        <!-- Controls and params -->
+        <Border Grid.Row="1" Background="#F0F0F0" Padding="12,10" Margin="12,0,12,10" CornerRadius="4">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <!-- Engine Selection -->
+                <TextBlock Text="Engine:" VerticalAlignment="Center" FontWeight="SemiBold" Margin="0,0,8,0"/>
+                <RadioButton x:Name="radioASM" Content="x64 MASM" IsChecked="True" GroupName="Engine" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                <RadioButton x:Name="radioCSharp" Content="C#" GroupName="Engine" VerticalAlignment="Center" Margin="0,0,8,0"/>
+
+                <Separator Margin="0,2,16,2"/>
+                
+                <!-- Number of threads selector -->
+                <TextBlock Text="Threads:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                <ComboBox x:Name="threadsCombo" SelectedIndex="0" Width="60" Height="26" VerticalAlignment="Center" Margin="0,0,16,0">
+                    <ComboBoxItem Content="1"/>
+                    <!-- Multithreading not implemented yet :/ -->
+                    <!--ComboBoxItem Content="2"/>
+                    <ComboBoxItem Content="4"/>
+                    <ComboBoxItem Content="8"/>
+                    <ComboBoxItem Content="16"/>
+                    <ComboBoxItem Content="32"/>-->
+                </ComboBox>
+                
+                <!-- Radious slider -->
+                <TextBlock Text="Radius:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
+                <Slider x:Name="radiusSlider" Minimum="1" Maximum="15" Value="3" Width="100" VerticalAlignment="Center" Margin="0,0,16,0" IsSnapToTickEnabled="True" TickFrequency="1"/>
+                <TextBlock x:Name="radiusValueText" Text="{Binding ElementName=radiusSlider, Path=Value}" VerticalAlignment="Center" Margin="6,0,0,0"/>
+
+            </StackPanel>
+            
+            <!-- run and save-->
+            <StackPanel Grid.Column="2"  Orientation="Horizontal">
+                <Button Padding="12,6" Margin="4,0" Click="Save_Image_Click">Save</Button>
+                    <Button Padding="12,6" Margin="4,0" Click="Run_Gaussian_Click">Run Blur</Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+        
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="2" VerticalAlignment="Bottom">
+            <StatusBarItem>
+                <TextBlock x:Name="statusText" Text="Ready"/>
+            </StatusBarItem>
+            <Separator/>
+            <StatusBarItem>
+                <TextBlock x:Name="ExecutionTimeText" Text="Elapsed: -- ms"/>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>
