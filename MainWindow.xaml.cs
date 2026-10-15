@@ -21,7 +21,6 @@ namespace gaussian_blur_x86_64_asm
 
         public MainWindow()
         {
-            
             InitializeComponent();
         }
 
@@ -33,6 +32,13 @@ namespace gaussian_blur_x86_64_asm
             statusText.Text = "Ready";
         }
 
+        private async void Show_Original_Click(object sender, RoutedEventArgs e)
+        {
+            //TODO: Implement logic to show the original image here
+            statusText.Text = "Showing Original Image...";
+            await Task.Delay(1000);
+            statusText.Text = "Ready";
+        }
         private async void Run_Gaussian_Click(object sender, RoutedEventArgs e)
         {
             //TODO: Implement Gaussian Blur call here
