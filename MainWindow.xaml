@@ -24,7 +24,8 @@
                 Margin="12" 
                 Background="#F9F9F9"
                 CornerRadius="4">
-            <Button Click="Image_Select_Click" 
+            <Button x:Name="selectImageButton"
+                    Click="Image_Select_Click" 
                     Cursor="Hand"
                     ToolTip="Click to select an input image">
                 <Button.Template>
