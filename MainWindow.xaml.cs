@@ -58,9 +58,14 @@ namespace gaussian_blur_x86_64_asm
         }
         private async void Run_Gaussian_Click(object sender, RoutedEventArgs e)
         {
-            //TODO: Implement Gaussian Blur call here
             statusText.Text = "Running Gaussian Blur...";
-            await Task.Delay(1000);
+            await Task.Delay(100);
+            _blurrer.ApplyWithCSharp((int)radiusSlider.Value);
+
+            var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
+            if (imageControl == null) return;
+
+            imageControl.Source = _blurrer.Blurred;
             statusText.Text = "Ready";
             
         }
