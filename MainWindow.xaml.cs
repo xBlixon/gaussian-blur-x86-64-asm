@@ -19,17 +19,34 @@ namespace gaussian_blur_x86_64_asm
     public partial class MainWindow : Window
     {
 
+        ImageBlurrer _blurrer;
+
         public MainWindow()
         {
             InitializeComponent();
+            _blurrer = new ImageBlurrer();
         }
 
         private async void Image_Select_Click(object sender, RoutedEventArgs e)
         {
-            //TODO: Implement image selection logic here
-            statusText.Text = "PhotoClicked";
+            bool loaded = _blurrer.loadSourceImage();
+            
+            if(loaded)
+            {
+                statusText.Text = "Image loaded";
+                var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
+
+                if (imageControl == null) return;
+                
+                imageControl.Source = _blurrer.Source;
+            } else
+            {
+                statusText.Text = "Failed to load image";
+            }
+
             await Task.Delay(1000);
             statusText.Text = "Ready";
+
         }
 
         private async void Show_Original_Click(object sender, RoutedEventArgs e)
