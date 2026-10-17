@@ -31,10 +31,23 @@ namespace gaussian_blur_x86_64_asm
             openFileDialog.Filter = "Image files (*.jpg, *.jpeg, *.png, *.bmp)|*.jpg;*.jpeg;*.png;*.bmp|All files (*.*)|*.*";
             if (openFileDialog.ShowDialog() == true)
             {
-                _source = Image.FromFile(openFileDialog.FileName);
+                try
+                {
+                    _source = Image.FromFile(openFileDialog.FileName);
+                }
+                catch (Exception ex)
+                {
+                    return false;
+                }
+
                 return true;
             }
             return false;
+        }
+
+        public bool IsSourceLoaded()
+        {
+            return _source != null;
         }
 
         public void ApplyWithCSharp()

@@ -33,12 +33,20 @@ namespace gaussian_blur_x86_64_asm
             
             if(loaded)
             {
+                statusText.Text = "Image loaded";
                 var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
 
                 if (imageControl == null) return;
                 
                 imageControl.Source = _blurrer.Source;
+            } else
+            {
+                statusText.Text = "Failed to load image";
             }
+
+            await Task.Delay(1000);
+            statusText.Text = "Ready";
+
         }
 
         private async void Run_Gaussian_Click(object sender, RoutedEventArgs e)
