@@ -5,6 +5,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
+using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -12,17 +14,17 @@ namespace gaussian_blur_x86_64_asm
 {
     internal class ImageBlurrer
     {
-        private Image? _source;
-        private Image? _blurred;
+        private Bitmap? _source;
+        private Bitmap? _blurred;
 
         public ImageSource? Source
         {
-            get { return _source != null ? ToImageSource(_source) : null; }
+            get { return _source != null ? ToBitmapImage(_source) : null; }
         }
 
         public ImageSource? Blurred
         {
-            get { return _blurred != null ? ToImageSource(_blurred) : null; }
+            get { return _blurred != null ? ToBitmapImage(_blurred) : null; }
         }
 
         public bool loadSourceImage()
@@ -33,9 +35,9 @@ namespace gaussian_blur_x86_64_asm
             {
                 try
                 {
-                    _source = Image.FromFile(openFileDialog.FileName);
+                    _source = new Bitmap(openFileDialog.FileName);
                 }
-                catch (Exception ex)
+                catch (Exception)
                 {
                     return false;
                 }
@@ -50,28 +52,26 @@ namespace gaussian_blur_x86_64_asm
             return _source != null;
         }
 
-        public void ApplyWithCSharp()
+        public void ApplyWithCSharp(int radius)
         {
-            // TODO: Implement Gaussian Blur
+            if (_source == null) return;
+
+            CSharpGaussianBlur blur = new CSharpGaussianBlur(radius, ref _source);
+            _blurred = blur.GetBlurred();
         }
 
-        private ImageSource ToImageSource(Image image)
+        private BitmapImage? ToBitmapImage(Bitmap bitmap)
         {
-            return ToBitmapImage(image);
-        }
+            if (bitmap == null) return null;
 
-        private BitmapImage ToBitmapImage(Image image)
-        {
-            var memory = new MemoryStream();
-            image.Save(memory, ImageFormat.Png);
+            using var memory = new MemoryStream();
+            bitmap.Save(memory, ImageFormat.Bmp);
             memory.Position = 0;
 
             var bitmapImage = new BitmapImage();
             bitmapImage.BeginInit();
-
             bitmapImage.StreamSource = memory;
             bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-
             bitmapImage.EndInit();
             bitmapImage.Freeze();
 
