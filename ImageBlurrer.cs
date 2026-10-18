@@ -52,12 +52,16 @@ namespace gaussian_blur_x86_64_asm
             return _source != null;
         }
 
-        public void ApplyWithCSharp(int radius)
+        public Task ApplyWithCSharp(int radius)
         {
-            if (_source == null) return;
+            if (_source == null) return Task.CompletedTask;
 
-            CSharpGaussianBlur blur = new CSharpGaussianBlur(radius, ref _source);
-            _blurred = blur.GetBlurred();
+                return Task.Run(() =>
+            {
+                var sourceCopy = _source;
+                CSharpGaussianBlur blur = new CSharpGaussianBlur(radius, ref sourceCopy);
+                _blurred = blur.GetBlurred(); 
+            });
         }
 
         private BitmapImage? ToBitmapImage(Bitmap bitmap)
