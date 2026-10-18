@@ -82,5 +82,21 @@ namespace gaussian_blur_x86_64_asm
             return bitmapImage;
         }
 
+        internal void saveBlurredImage()
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
+            saveFileDialog.Filter = "Image files (*.jpg, *.jpeg, *.png, *.bmp)|*.jpg;*.jpeg;*.png;*.bmp|All files (*.*)|*.*";
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    _blurred?.Save(saveFileDialog.FileName, ImageFormat.Bmp);
+                }
+                catch (Exception)
+                {
+                    throw new Exception("Failed to save image");
+                }
+            }
+        }
     }
 }

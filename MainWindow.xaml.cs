@@ -84,10 +84,29 @@ namespace gaussian_blur_x86_64_asm
         {
             if (ready == false) return;
             ready = false;
-            //TODO: Implement image saving logic here
-            statusText.Text = "Image Saved";
-            await Task.Delay(1000);
+            statusText.Text = "Saving Image";
+            if (_blurrer.Blurred != null)
+            {
+                try
+                {
+                    _blurrer.saveBlurredImage();
+
+                }
+                catch (Exception ex)
+                {
+                    statusText.Text = $"Error saving image: {ex.Message}";
+                }
+                statusText.Text = "Image Saved";
+
+            }
+            else
+            {
+                statusText.Text = "No blurred image to save";
+                await Task.Delay(1000);
+            }
+
             ready = true;
+            await Task.Delay(1000);
             statusText.Text = "Ready";
         }
     }
