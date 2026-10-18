@@ -68,7 +68,7 @@ namespace gaussian_blur_x86_64_asm
             if (ready == false) return;
             statusText.Text = "Running Gaussian Blur...";
             ready = false;
-            _blurrer.ApplyWithCSharp((int)radiusSlider.Value);
+            await _blurrer.ApplyWithCSharp((int)radiusSlider.Value);
 
             var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
             if (imageControl == null) return;
