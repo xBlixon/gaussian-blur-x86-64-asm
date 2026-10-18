@@ -32,6 +32,7 @@ namespace gaussian_blur_x86_64_asm
         {
             if(ready == false) return;
             ready = false;
+            statusText.Text = "Loading Image...";
             bool loaded = _blurrer.loadSourceImage();
             
             if(loaded)
@@ -50,19 +51,40 @@ namespace gaussian_blur_x86_64_asm
             await Task.Delay(1000);
             ready = true;
             statusText.Text = "Ready";
-
         }
 
-        private async void Show_Original_Click(object sender, RoutedEventArgs e)
+        private async void Show_Original_Mouse_Down(object sender, MouseButtonEventArgs e)
         {
-            if(ready == false) return;
-            ready = false;
-            //TODO: Implement logic to show the original image here
+            if (e.LeftButton != MouseButtonState.Pressed) return;
+            if (_blurrer?.Source == null) return;
             statusText.Text = "Showing Original Image...";
-            await Task.Delay(1000);
-            ready = true;
-            statusText.Text = "Ready";
+            var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
+            imageControl.Source = _blurrer.Source;
+
+
+            // Catching releases outside the button
+            if(sender is UIElement element)
+            {
+                Mouse.Capture(element);
+            }
+
+
+            
         }
+        private async void Show_Original_Mouse_Up(object sender, RoutedEventArgs e)
+        {
+            if (sender is UIElement element && Mouse.Captured == element)
+            {
+                Mouse.Capture(null);
+            }
+            
+            if (_blurrer.Blurred != null)
+            {
+                var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
+                imageControl.Source = _blurrer.Blurred;
+            }
+        }  
+
         private async void Run_Gaussian_Click(object sender, RoutedEventArgs e)
         {
             if (ready == false) return;
