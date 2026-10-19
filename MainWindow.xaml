@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:gaussian_blur_x86_64_asm"
         mc:Ignorable="d"
-        Title="MainWindow"
+        Title="Gaussian Blur Tool"
         Height="650" Width="1000"
         MinHeight="300" MinWidth="600"
         >
