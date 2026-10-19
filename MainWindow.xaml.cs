@@ -10,6 +10,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace gaussian_blur_x86_64_asm
 {
@@ -89,16 +90,22 @@ namespace gaussian_blur_x86_64_asm
 
         private async void Run_Gaussian_Click(object sender, RoutedEventArgs e)
         {
+            executionTimeText.Text = "Last Run Execution Time: -- ms";
             if (_readyForRequest == false) return;
             statusText.Text = "Running Gaussian Blur...";
             _readyForRequest = false;
+            //TODO: implement engine selection and call the appropriate method based on the selected engine here
+            Stopwatch stopwatch = Stopwatch.StartNew();
+
             await _blurrer.ApplyWithCSharp((int)radiusSlider.Value);
+            stopwatch.Stop();
 
             var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
             if (imageControl == null) return;
 
             imageControl.Source = _blurrer.Blurred;
         
+            executionTimeText.Text = $"Last Run Execution Time: {stopwatch.ElapsedMilliseconds} ms";
             _readyForRequest = true;
             statusText.Text = "Ready";
             

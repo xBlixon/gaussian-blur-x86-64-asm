@@ -90,7 +90,7 @@
             </StatusBarItem>
             <Separator/>
             <StatusBarItem>
-                <TextBlock x:Name="ExecutionTimeText" Text="Elapsed: -- ms"/>
+                <TextBlock x:Name="executionTimeText" Text="Last Run Execution Time: -- ms"/>
             </StatusBarItem>
         </StatusBar>
     </Grid>
