@@ -55,6 +55,7 @@ namespace gaussian_blur_x86_64_asm
 
         private async void Show_Original_Mouse_Down(object sender, MouseButtonEventArgs e)
         {
+            if (_readyForRequest == false) return;
             if (e.LeftButton != MouseButtonState.Pressed) return;
             if (_blurrer?.Source == null) return;
             statusText.Text = "Showing Original Image...";
@@ -73,6 +74,7 @@ namespace gaussian_blur_x86_64_asm
         }
         private async void Show_Original_Mouse_Up(object sender, RoutedEventArgs e)
         {
+            if (_readyForRequest == false) return;
             if (sender is UIElement element && Mouse.Captured == element)
             {
                 Mouse.Capture(null);
