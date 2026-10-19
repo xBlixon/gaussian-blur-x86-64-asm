@@ -104,12 +104,31 @@ namespace gaussian_blur_x86_64_asm
 
         private async void Save_Image_Click(object sender, RoutedEventArgs e)
         {
-            if (_readyForRequest == false) return;
-            _readyForRequest = false;
-            //TODO: Implement image saving logic here
-            statusText.Text = "Image Saved";
+            if (readyForRequest == false) return;
+            readyForRequest = false;
+            statusText.Text = "Saving Image";
+            if (_blurrer.Blurred != null)
+            {
+                try
+                {
+                    _blurrer.saveBlurredImage();
+
+                }
+                catch (Exception ex)
+                {
+                    statusText.Text = $"Error saving image: {ex.Message}";
+                }
+                statusText.Text = "Image Saved";
+
+            }
+            else
+            {
+                statusText.Text = "No blurred image to save";
+                await Task.Delay(1000);
+            }
+
+            readyForRequest = true;
             await Task.Delay(1000);
-            _readyForRequest = true;
             statusText.Text = "Ready";
         }
     }
