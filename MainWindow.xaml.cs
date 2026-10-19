@@ -20,7 +20,7 @@ namespace gaussian_blur_x86_64_asm
     public partial class MainWindow : Window
     {
         private bool _readyForRequest = false;
-        ImageBlurrer _blurrer;
+        private readonly ImageBlurrer _blurrer;
 
         public MainWindow()
         {
@@ -39,10 +39,8 @@ namespace gaussian_blur_x86_64_asm
             if(loaded)
             {
                 statusText.Text = "Image loaded";
-                var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
+                if (selectImageButton.Template.FindName("image", selectImageButton) is not System.Windows.Controls.Image imageControl) return;
 
-                if (imageControl == null) return;
-                
                 imageControl.Source = _blurrer.Source;
             } else
             {
@@ -60,7 +58,7 @@ namespace gaussian_blur_x86_64_asm
             if (e.LeftButton != MouseButtonState.Pressed) return;
             if (_blurrer?.Source == null) return;
             statusText.Text = "Showing Original Image...";
-            var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
+            if (selectImageButton.Template.FindName("image", selectImageButton) is not System.Windows.Controls.Image imageControl) return;
             imageControl.Source = _blurrer.Source;
 
 
@@ -83,7 +81,7 @@ namespace gaussian_blur_x86_64_asm
             
             if (_blurrer.Blurred != null)
             {
-                var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
+                if (selectImageButton.Template.FindName("image", selectImageButton) is not System.Windows.Controls.Image imageControl) return;
                 imageControl.Source = _blurrer.Blurred;
             }
         }  
@@ -94,18 +92,32 @@ namespace gaussian_blur_x86_64_asm
             if (_readyForRequest == false) return;
             statusText.Text = "Running Gaussian Blur...";
             _readyForRequest = false;
-            //TODO: implement engine selection and call the appropriate method based on the selected engine here
-            Stopwatch stopwatch = Stopwatch.StartNew();
+            if(_blurrer.IsSourceLoaded() == false)
+            {
+                statusText.Text = "No image loaded";
+                _readyForRequest = true;
+                return;
+            }
 
-            await _blurrer.ApplyWithCSharp((int)radiusSlider.Value);
-            stopwatch.Stop();
+            Stopwatch blurMeasureStopwatch = Stopwatch.StartNew(); 
+            
+            //Checking if the value is of radio button is true and if it's value is not null
+            //I've added the comment because it looks ugly for me
+            if (radioASM.IsChecked.HasValue && radioASM.IsChecked.Value)
+            {
+                await _blurrer.ApplyWithAsm((int)radiusSlider.Value);
+            }
+            else if (radioCSharp.IsChecked.HasValue && radioCSharp.IsChecked.Value)
+            {
+                await _blurrer.ApplyWithCSharp((int)radiusSlider.Value);
+            }
+            blurMeasureStopwatch.Stop(); 
 
-            var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
-            if (imageControl == null) return;
+            if (selectImageButton.Template.FindName("image", selectImageButton) is not System.Windows.Controls.Image imageControl) return;
 
             imageControl.Source = _blurrer.Blurred;
         
-            executionTimeText.Text = $"Last Run Execution Time: {stopwatch.ElapsedMilliseconds} ms";
+            executionTimeText.Text = $"Last Run Execution Time: {blurMeasureStopwatch.ElapsedMilliseconds} ms";
             _readyForRequest = true;
             statusText.Text = "Ready";
             
@@ -120,7 +132,7 @@ namespace gaussian_blur_x86_64_asm
             {
                 try
                 {
-                    _blurrer.saveBlurredImage();
+                    _blurrer.SaveBlurredImage();
 
                 }
                 catch (Exception ex)

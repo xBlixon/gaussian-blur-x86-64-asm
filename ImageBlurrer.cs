@@ -82,7 +82,7 @@ namespace gaussian_blur_x86_64_asm
             return bitmapImage;
         }
 
-        internal void saveBlurredImage()
+        internal void SaveBlurredImage()
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
             saveFileDialog.Filter = "Image files (*.jpg, *.jpeg, *.png, *.bmp)|*.jpg;*.jpeg;*.png;*.bmp|All files (*.*)|*.*";
@@ -97,6 +97,12 @@ namespace gaussian_blur_x86_64_asm
                     throw new Exception("Failed to save image");
                 }
             }
+        }
+
+        //TODO: Implement MASM solution
+        internal async Task ApplyWithAsm(int value)
+        {
+            throw new NotImplementedException();
         }
     }
 }
