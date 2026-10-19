@@ -64,7 +64,7 @@ namespace gaussian_blur_x86_64_asm
             double sigma = radius / 2.0; // Standard deviation for Gaussian function
             double twoSigmaSquare = 2.0 * sigma * sigma;
 
-            //TODO: add paralel execution to those loops
+            //TODO: add parallel execution to those loops
             for (int row=0; row<side; row++)
             {
                 for(int col=0; col<side; col++)
@@ -83,7 +83,7 @@ namespace gaussian_blur_x86_64_asm
             }
 
             // Kernel normalization
-            //TODO: add paralel execution to those loops
+            //TODO: add parallel execution to those loops
             for (int row = 0; row < side; row++)
             {
                 for (int col = 0; col < side; col++)

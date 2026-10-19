@@ -18,20 +18,21 @@ namespace gaussian_blur_x86_64_asm
     /// </summary>
     public partial class MainWindow : Window
     {
-        private bool ready = false;
+        private bool _readyForRequest = false;
         ImageBlurrer _blurrer;
 
         public MainWindow()
         {
             InitializeComponent();
             _blurrer = new ImageBlurrer();
-            ready = true;
+            _readyForRequest = true;
         }
 
         private async void Image_Select_Click(object sender, RoutedEventArgs e)
         {
-            if(ready == false) return;
-            ready = false;
+            if(_readyForRequest == false) return;
+            _readyForRequest = false;
+            statusText.Text = "Loading Image...";
             bool loaded = _blurrer.loadSourceImage();
             
             if(loaded)
@@ -48,26 +49,47 @@ namespace gaussian_blur_x86_64_asm
             }
 
             await Task.Delay(1000);
-            ready = true;
+            _readyForRequest = true;
             statusText.Text = "Ready";
-
         }
 
-        private async void Show_Original_Click(object sender, RoutedEventArgs e)
+        private async void Show_Original_Mouse_Down(object sender, MouseButtonEventArgs e)
         {
-            if(ready == false) return;
-            ready = false;
-            //TODO: Implement logic to show the original image here
+            if (e.LeftButton != MouseButtonState.Pressed) return;
+            if (_blurrer?.Source == null) return;
             statusText.Text = "Showing Original Image...";
-            await Task.Delay(1000);
-            ready = true;
-            statusText.Text = "Ready";
+            var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
+            imageControl.Source = _blurrer.Source;
+
+
+            // Catching releases outside the button
+            if(sender is UIElement element)
+            {
+                Mouse.Capture(element);
+            }
+
+
+            
         }
+        private async void Show_Original_Mouse_Up(object sender, RoutedEventArgs e)
+        {
+            if (sender is UIElement element && Mouse.Captured == element)
+            {
+                Mouse.Capture(null);
+            }
+            
+            if (_blurrer.Blurred != null)
+            {
+                var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
+                imageControl.Source = _blurrer.Blurred;
+            }
+        }  
+
         private async void Run_Gaussian_Click(object sender, RoutedEventArgs e)
         {
-            if (ready == false) return;
+            if (_readyForRequest == false) return;
             statusText.Text = "Running Gaussian Blur...";
-            ready = false;
+            _readyForRequest = false;
             await _blurrer.ApplyWithCSharp((int)radiusSlider.Value);
 
             var imageControl = selectImageButton.Template.FindName("image", selectImageButton) as System.Windows.Controls.Image;
@@ -75,15 +97,15 @@ namespace gaussian_blur_x86_64_asm
 
             imageControl.Source = _blurrer.Blurred;
         
-            ready = true;
+            _readyForRequest = true;
             statusText.Text = "Ready";
             
         }
 
         private async void Save_Image_Click(object sender, RoutedEventArgs e)
         {
-            if (ready == false) return;
-            ready = false;
+            if (readyForRequest == false) return;
+            readyForRequest = false;
             statusText.Text = "Saving Image";
             if (_blurrer.Blurred != null)
             {
@@ -105,7 +127,7 @@ namespace gaussian_blur_x86_64_asm
                 await Task.Delay(1000);
             }
 
-            ready = true;
+            readyForRequest = true;
             await Task.Delay(1000);
             statusText.Text = "Ready";
         }

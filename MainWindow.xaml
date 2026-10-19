@@ -74,9 +74,9 @@
                     <TextBlock x:Name="radiusValueText" Text="{Binding ElementName=radiusSlider, Path=Value}" VerticalAlignment="Center" Margin="6,0,0,0"/>
                 </StackPanel>
             
-            <!-- run and save-->
+            <!-- original, run and save-->
             <StackPanel Grid.Column="2"  Orientation="Horizontal">
-                    <Button Padding="12,6" Margin="4,0" Click="Show_Original_Click">Show Original</Button>
+                    <Button Padding="12,6" Margin="4,0" PreviewMouseDown="Show_Original_Mouse_Down" PreviewMouseUp="Show_Original_Mouse_Up">Show Original</Button>
                 <Button Padding="12,6" Margin="4,0" Click="Save_Image_Click">Save</Button>
                     <Button Padding="12,6" Margin="4,0" Click="Run_Gaussian_Click">Run Blur</Button>
             </StackPanel>
