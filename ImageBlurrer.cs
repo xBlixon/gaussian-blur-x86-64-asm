@@ -35,7 +35,16 @@ namespace gaussian_blur_x86_64_asm
             {
                 try
                 {
-                    _source = new Bitmap(openFileDialog.FileName);
+                    using (Bitmap loadedBitmap = new Bitmap(openFileDialog.FileName))
+                    {
+                        _source?.Dispose();
+                        _source = new Bitmap(loadedBitmap.Width, loadedBitmap.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+
+                        using (Graphics g = Graphics.FromImage(_source))
+                        {
+                            g.DrawImage(loadedBitmap, new Rectangle(0, 0, _source.Width, _source.Height));
+                        }
+                    }
                 }
                 catch (Exception)
                 {
@@ -52,14 +61,15 @@ namespace gaussian_blur_x86_64_asm
             return _source != null;
         }
 
-        public Task ApplyWithCSharp(int radius)
+        public Task ApplyWithCSharp(int radius,byte threadsCount)
         {
             if (_source == null) return Task.CompletedTask;
-
+            
                 return Task.Run(() =>
             {
+                _blurred?.Dispose();
                 var sourceCopy = _source;
-                CSharpGaussianBlur blur = new CSharpGaussianBlur(radius, ref sourceCopy);
+                CSharpGaussianBlur blur = new CSharpGaussianBlur(radius, ref sourceCopy, threadsCount);
                 _blurred = blur.GetBlurred(); 
             });
         }

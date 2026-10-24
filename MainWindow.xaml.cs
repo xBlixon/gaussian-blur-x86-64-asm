@@ -98,7 +98,8 @@ namespace gaussian_blur_x86_64_asm
                 _readyForRequest = true;
                 return;
             }
-
+            ComboBoxItem threadsSelected = (ComboBoxItem)threadsCombo.SelectedItem;
+            byte threadsCount = Convert.ToByte(threadsSelected.Content);
             Stopwatch blurMeasureStopwatch = Stopwatch.StartNew(); 
             
             //Checking if the value is of radio button is true and if it's value is not null
@@ -109,7 +110,7 @@ namespace gaussian_blur_x86_64_asm
             }
             else if (radioCSharp.IsChecked.HasValue && radioCSharp.IsChecked.Value)
             {
-                await _blurrer.ApplyWithCSharp((int)radiusSlider.Value);
+                await _blurrer.ApplyWithCSharp((int)radiusSlider.Value,threadsCount);
             }
             blurMeasureStopwatch.Stop(); 
 
