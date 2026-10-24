@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.Runtime.InteropServices;
 using System.Text;
 
 
@@ -9,52 +11,105 @@ namespace gaussian_blur_x86_64_asm
     internal class CSharpGaussianBlur
     {
         private int _radius;
+        private byte _threadsCount;
         private readonly Bitmap _image;
 
         private readonly double[,] _kernel;
 
-        public CSharpGaussianBlur(int radius, ref Bitmap image)
+        public CSharpGaussianBlur(int radius, ref Bitmap image, byte threadsCount)
         {
             _radius = radius;
             _image = image;
             _kernel = generateKernel(radius);
+            _threadsCount = threadsCount;
             printKernel();
         }
 
         public Bitmap GetBlurred()
         {
+            int width  = _image.Width;
+            int height = _image.Height;
+            
             // New image to be blurred
-            Bitmap bmp = new Bitmap(_image.Width, _image.Height);
-            for (int X=0; X<bmp.Width; X++)
+            Bitmap return_bmp = new Bitmap(width,height,PixelFormat.Format32bppArgb);
+            
+            //Locking buffers
+            BitmapData srcData = _image.LockBits(new Rectangle(0,0,width,height),ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData dstData = return_bmp.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly,PixelFormat.Format32bppArgb);
+
+            try
             {
-                for(int Y=0; Y<bmp.Height; Y++)
+                int stride = srcData.Stride;
+                int bufferSize = Math.Abs(stride) * height;
+
+                byte[] srcBuffer = new byte[bufferSize];
+                byte[] dstBuffer = new byte[bufferSize];
+
+                Marshal.Copy(srcData.Scan0, srcBuffer, 0, bufferSize);
+
+
+                var options = new ParallelOptions
                 {
-                    bmp.SetPixel(X, Y, GetBlurredPixel(X, Y));
-                }
+                    MaxDegreeOfParallelism = _threadsCount
+                };
+                Parallel.For(0, height, options, y =>
+                {
+                    int rowOffset = (int)y * stride;
+
+                    for (int x = 0; x < width; x++)
+                    {
+                        int pixelOffset = rowOffset + (x * 4);
+                        GetBlurredPixel(srcBuffer, width, height, stride, x, y, out byte b, out byte g,out byte r,out byte a);
+
+                        //Format32bppArgb [B,G,R,A]
+                        dstBuffer[pixelOffset + 0] = b;
+                        dstBuffer[pixelOffset + 1] = g;
+                        dstBuffer[pixelOffset + 2] = r;
+                        dstBuffer[pixelOffset + 3] = a;
+
+                    }
+                });
+                Marshal.Copy(dstBuffer, 0,dstData.Scan0, bufferSize);
             }
-            return bmp;
+            finally
+            {
+                _image.UnlockBits(srcData);
+                return_bmp.UnlockBits(dstData);
+            }
+            return return_bmp;
         }
 
-        private Color GetBlurredPixel(int X, int Y)
+        private void GetBlurredPixel(byte[]src,int width,int height, int stride, int x, int y,
+            out byte outB, out byte outG, out byte outR, out byte outA)
         {
-            double A = 0;
-            double R = 0;
-            double G = 0;
-            double B = 0;
-            for (int rX = -_radius; rX <= _radius; rX++)
+            double aSum = 0;
+            double rSum = 0;
+            double gSum = 0;
+            double bSum = 0;
+            for (int rY = -_radius; rY <= _radius; rY++)
             {
-                for (int rY = -_radius; rY <= _radius; rY++)
-                {
-                    Color pxl = _image.GetPixel(Math.Clamp(X + rX, 0, _image.Width-1), Math.Clamp(Y + rY, 0, _image.Height-1));
-                    var scale = _kernel[_radius + rX, _radius + rY];
-                    A += pxl.A * scale;
-                    R += pxl.R * scale;
-                    G += pxl.G * scale;
-                    B += pxl.B * scale;
+                int sampleY = Math.Clamp(y + rY, 0, height-1);
+                int sampleRowOffset = sampleY * stride;
 
+                for (int rX = -_radius; rX <= _radius; rX++)
+                {
+                    int sampleX = Math.Clamp(x +rX,0,width-1);
+                    int sampleOffset = sampleRowOffset + (sampleX * 4);
+                    double scale = _kernel[_radius + rX, _radius + rY];
+
+                    //using Format32bppArgb we have 0:blue, 1:green, 2:red, 3:alpha
+                    bSum += src[sampleOffset + 0] * scale;
+                    gSum += src[sampleOffset + 1] * scale;
+                    rSum += src[sampleOffset + 2] * scale;
+                    aSum += src[sampleOffset + 3] * scale;
                 }
             }
-            return Color.FromArgb((int)Math.Round(A), (int)Math.Round(R), (int)Math.Round(G), (int)Math.Round(B));
+
+            outB = (byte)Math.Clamp((int)Math.Round(bSum),0, 255);
+            outG = (byte)Math.Clamp((int)Math.Round(gSum),0, 255);
+            outR = (byte)Math.Clamp((int)Math.Round(rSum),0, 255);
+            outA = (byte)Math.Clamp((int)Math.Round(aSum),0, 255);
+                
         }
 
         private double[,] generateKernel(int radius)
@@ -83,7 +138,6 @@ namespace gaussian_blur_x86_64_asm
             }
 
             // Kernel normalization
-            //TODO: add parallel execution to those loops
             for (int row = 0; row < side; row++)
             {
                 for (int col = 0; col < side; col++)

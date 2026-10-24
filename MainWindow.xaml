@@ -61,11 +61,10 @@
                 <TextBlock Text="Threads:" VerticalAlignment="Center" Margin="0,0,8,0" FontWeight="SemiBold"/>
                 <ComboBox x:Name="threadsCombo" SelectedIndex="0" Width="60" Height="26" VerticalAlignment="Center" Margin="0,0,16,0">
                     <ComboBoxItem Content="1"/>
-                    <!-- Multithreading not implemented yet :/ -->
-                    <!--ComboBoxItem Content="2"/>
+                    <ComboBoxItem Content="2"/>
                     <ComboBoxItem Content="4"/>
                     <ComboBoxItem Content="8"/>
-                    <ComboBoxItem Content="16"/> -->
+                    <ComboBoxItem Content="16"/> 
                 </ComboBox>
                 
                 <!-- Radious slider -->
