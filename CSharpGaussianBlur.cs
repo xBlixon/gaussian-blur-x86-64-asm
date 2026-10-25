@@ -8,24 +8,14 @@ using System.Text;
 
 namespace gaussian_blur_x86_64_asm
 {
-    internal class CSharpGaussianBlur
+    internal class CSharpGaussianBlur : GaussianBlur
     {
-        private int _radius;
-        private byte _threadsCount;
-        private readonly Bitmap _image;
-
-        private readonly double[,] _kernel;
-
-        public CSharpGaussianBlur(int radius, ref Bitmap image, byte threadsCount)
+        public CSharpGaussianBlur(int radius, ref Bitmap image, byte threadsCount) : base(radius, ref image, threadsCount) 
         {
-            _radius = radius;
-            _image = image;
-            _kernel = generateKernel(radius);
-            _threadsCount = threadsCount;
-            printKernel();
+            PrintKernel();
         }
 
-        public Bitmap GetBlurred()
+        public override Bitmap GetBlurred()
         {
             int width  = _image.Width;
             int height = _image.Height;
@@ -79,7 +69,7 @@ namespace gaussian_blur_x86_64_asm
             return return_bmp;
         }
 
-        private void GetBlurredPixel(byte[]src,int width,int height, int stride, int x, int y,
+        protected override void GetBlurredPixel(byte[]src,int width,int height, int stride, int x, int y,
             out byte outB, out byte outG, out byte outR, out byte outA)
         {
             double aSum = 0;
@@ -112,7 +102,7 @@ namespace gaussian_blur_x86_64_asm
                 
         }
 
-        private double[,] generateKernel(int radius)
+        protected override double[,] GenerateKernel(int radius)
         {
             int side = radius * 2 + 1;
             double[,] kernel = new double[side, side];
@@ -147,19 +137,6 @@ namespace gaussian_blur_x86_64_asm
             }
 
             return kernel;
-        }
-
-        private void printKernel()
-        {
-            int side = _kernel.GetLength(0);
-            for (int row = 0; row < side; row++)
-            {
-                for (int col = 0; col < side; col++)
-                {
-                    Console.Write(_kernel[row, col] + "\t");
-                }
-                Console.WriteLine();
-            }
         }
     }
 }
