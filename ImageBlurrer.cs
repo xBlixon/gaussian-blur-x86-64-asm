@@ -74,6 +74,12 @@ namespace gaussian_blur_x86_64_asm
             });
         }
 
+        //TODO: Implement MASM solution
+        internal async Task ApplyWithAsm(int value)
+        {
+            throw new NotImplementedException();
+        }
+
         private BitmapImage? ToBitmapImage(Bitmap bitmap)
         {
             if (bitmap == null) return null;
@@ -107,12 +113,6 @@ namespace gaussian_blur_x86_64_asm
                     throw new Exception("Failed to save image");
                 }
             }
-        }
-
-        //TODO: Implement MASM solution
-        internal async Task ApplyWithAsm(int value)
-        {
-            throw new NotImplementedException();
         }
     }
 }
