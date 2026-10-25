@@ -106,11 +106,11 @@ namespace gaussian_blur_x86_64_asm
             //I've added the comment because it looks ugly for me
             if (radioASM.IsChecked.HasValue && radioASM.IsChecked.Value)
             {
-                await _blurrer.ApplyWithAsm((int)radiusSlider.Value);
+                await _blurrer.ApplyWithAsm((int)radiusSlider.Value, threadsCount);
             }
             else if (radioCSharp.IsChecked.HasValue && radioCSharp.IsChecked.Value)
             {
-                await _blurrer.ApplyWithCSharp((int)radiusSlider.Value,threadsCount);
+                await _blurrer.ApplyWithCSharp((int)radiusSlider.Value, threadsCount);
             }
             blurMeasureStopwatch.Stop(); 
 

@@ -75,9 +75,17 @@ namespace gaussian_blur_x86_64_asm
         }
 
         //TODO: Implement MASM solution
-        internal async Task ApplyWithAsm(int value)
+        public Task ApplyWithAsm(int radius, byte threadsCount)
         {
-            throw new NotImplementedException();
+            if (_source == null) return Task.CompletedTask;
+
+            return Task.Run(() =>
+            {
+                _blurred?.Dispose();
+                var sourceCopy = _source;
+                CSharpGaussianBlur blur = new CSharpGaussianBlur(radius, ref sourceCopy, threadsCount);
+                _blurred = blur.GetBlurred();
+            });
         }
 
         private BitmapImage? ToBitmapImage(Bitmap bitmap)
