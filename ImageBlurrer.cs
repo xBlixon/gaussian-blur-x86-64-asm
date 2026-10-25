@@ -27,7 +27,7 @@ namespace gaussian_blur_x86_64_asm
             get { return _blurred != null ? ToBitmapImage(_blurred) : null; }
         }
 
-        public bool loadSourceImage()
+        public bool LoadSourceImage()
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "Image files (*.jpg, *.jpeg, *.png, *.bmp)|*.jpg;*.jpeg;*.png;*.bmp|All files (*.*)|*.*";

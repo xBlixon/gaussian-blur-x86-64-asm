@@ -34,7 +34,7 @@ namespace gaussian_blur_x86_64_asm
             if(_readyForRequest == false) return;
             _readyForRequest = false;
             statusText.Text = "Loading Image...";
-            bool loaded = _blurrer.loadSourceImage();
+            bool loaded = _blurrer.LoadSourceImage();
             
             if(loaded)
             {
