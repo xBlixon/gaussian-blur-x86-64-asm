@@ -1,0 +1,11 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="AsmLib/AsmLib.vcxproj" Id="35ae4516-2c0f-4272-bd29-b041babf7107" />
+  <Project Path="gaussian-blur-x86-64-asm.csproj">
+    <Platform Solution="*|x64" Project="x64" />
+  </Project>
+</Solution>

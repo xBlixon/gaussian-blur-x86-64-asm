@@ -400,8 +400,6 @@ FodyWeavers.xsd
 *.sln.iml
 
 ### VisualStudio ###
-*.sln
-*.slnx
 
 # User-specific files
 
