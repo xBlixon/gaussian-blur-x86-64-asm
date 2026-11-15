@@ -1,0 +1,34 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{enumitem}
+
+\begin{document}
+\begin{titlepage}
+    \centering
+    \vspace*{2cm}
+    {\huge\bfseries Gaussian Blur Filter\par}
+    \vspace{1.5cm}
+    {\Large\itshape{ Assembler Programming Languages / Project} \par}
+    \vspace{2cm}
+    {\Large Xawier Słupik, Adam Dyrda\par}
+    {\large Student IDs: 317520, 317549\par}
+    \vfill
+\end{titlepage}
+
+\section{Project Overview}
+The primary goal of this project is to implement a high-performance \texttt{Gaussian Blur} image processing algorithm. To achieve optimal execution speed and a user-friendly interface, the project combines high-level application management with low-level assembly optimizations.
+\section{Technical Architecture}
+\begin{itemize}
+    \item Frontend \& UI: Built using C\# .NET WPF to handle the user interface, file input/output, image loading, and thread management.
+    \item Blurring Core: Implemented in x64 MASM (Microsoft Macro Assembler) to leverage SIMD vector instructions for optimized image convolution operations.
+\end{itemize}
+
+\section{Implementation}
+\begin{enumerate}[label=\alph*)]
+   \item We begin the implementation with creating the front end application in C\# WPF. The application is designed to load images, manage user interactions, and handle threading for concurrent processing. 
+   \item The next thing is to implement the Gaussian Blur algorithm in C\# to understand the idea of the algorithm. And to have a baseline that we can compare our MASM implementation to.
+   \item The final step is to implement the highly optimized assembly code to improve the spped of the algorithm even further. 
+\end{enumerate}
+
+
+\end{document}
