@@ -1,31 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
-using System.Text;
 
 
 namespace gaussian_blur_x86_64_asm
 {
     internal class CSharpGaussianBlur : GaussianBlur
     {
-        public CSharpGaussianBlur(int radius, ref Bitmap image, byte threadsCount) : base(radius, ref image, threadsCount) 
+        public CSharpGaussianBlur(int radius, ref Bitmap image, byte threadsCount) : base(radius, ref image, threadsCount)
         {
             PrintKernel();
         }
 
         public override Bitmap GetBlurred()
         {
-            int width  = _image.Width;
+            int width = _image.Width;
             int height = _image.Height;
-            
+
             // New image to be blurred
-            Bitmap return_bmp = new Bitmap(width,height,PixelFormat.Format32bppArgb);
-            
+            Bitmap return_bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+
             //Locking buffers
-            BitmapData srcData = _image.LockBits(new Rectangle(0,0,width,height),ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-            BitmapData dstData = return_bmp.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly,PixelFormat.Format32bppArgb);
+            BitmapData srcData = _image.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+            BitmapData dstData = return_bmp.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
 
             try
             {
@@ -33,6 +30,7 @@ namespace gaussian_blur_x86_64_asm
                 int bufferSize = Math.Abs(stride) * height;
 
                 byte[] srcBuffer = new byte[bufferSize];
+                float [] tempBuffer = new float [bufferSize];
                 byte[] dstBuffer = new byte[bufferSize];
 
                 Marshal.Copy(srcData.Scan0, srcBuffer, 0, bufferSize);
@@ -42,24 +40,11 @@ namespace gaussian_blur_x86_64_asm
                 {
                     MaxDegreeOfParallelism = _threadsCount
                 };
-                Parallel.For(0, height, options, y =>
-                {
-                    int rowOffset = (int)y * stride;
 
-                    for (int x = 0; x < width; x++)
-                    {
-                        int pixelOffset = rowOffset + (x * 4);
-                        GetBlurredPixel(srcBuffer, width, height, stride, x, y, out byte b, out byte g,out byte r,out byte a);
+                BlurHorizontal(srcBuffer, tempBuffer, width, height, stride, options);
+                BlurVertical(tempBuffer,dstBuffer, width, height, stride, options);
 
-                        //Format32bppArgb [B,G,R,A]
-                        dstBuffer[pixelOffset + 0] = b;
-                        dstBuffer[pixelOffset + 1] = g;
-                        dstBuffer[pixelOffset + 2] = r;
-                        dstBuffer[pixelOffset + 3] = a;
-
-                    }
-                });
-                Marshal.Copy(dstBuffer, 0,dstData.Scan0, bufferSize);
+                Marshal.Copy(dstBuffer, 0, dstData.Scan0, bufferSize);
             }
             finally
             {
@@ -69,71 +54,88 @@ namespace gaussian_blur_x86_64_asm
             return return_bmp;
         }
 
-        protected override void GetBlurredPixel(byte[]src,int width,int height, int stride, int x, int y,
-            out byte outB, out byte outG, out byte outR, out byte outA)
+        
+        protected override void BlurHorizontal(byte[] src, float[] temp, int width, int height, int stride, ParallelOptions options)
         {
-            double aSum = 0;
-            double rSum = 0;
-            double gSum = 0;
-            double bSum = 0;
-            for (int rY = -_radius; rY <= _radius; rY++)
+            Parallel.For(0, height, options, y =>
             {
-                int sampleY = Math.Clamp(y + rY, 0, height-1);
-                int sampleRowOffset = sampleY * stride;
+                int rowOffset = y * stride;
 
-                for (int rX = -_radius; rX <= _radius; rX++)
+                for (int x = 0; x < width; x++)
                 {
-                    int sampleX = Math.Clamp(x +rX,0,width-1);
-                    int sampleOffset = sampleRowOffset + (sampleX * 4);
-                    double scale = _kernel[_radius + rX, _radius + rY];
+                    double bSum = 0, gSum=0, rSum = 0, aSum = 0;
+                    for(int i = -_radius;  i <=_radius; i++)
+                    {
+                        int sampleX = Math.Clamp(x + i, 0, width - 1);
+                        int sampleOffset = rowOffset + (sampleX * 4);
+                        double scale = _kernel[_radius + i];
 
-                    //using Format32bppArgb we have 0:blue, 1:green, 2:red, 3:alpha
-                    bSum += src[sampleOffset + 0] * scale;
-                    gSum += src[sampleOffset + 1] * scale;
-                    rSum += src[sampleOffset + 2] * scale;
-                    aSum += src[sampleOffset + 3] * scale;
+                        bSum += src[sampleOffset + 0] * scale;
+                        gSum += src[sampleOffset + 1] * scale;
+                        rSum += src[sampleOffset + 2] * scale;
+                        aSum += src[sampleOffset + 3] * scale;
+                    }
+
+                    int pixelOffset = rowOffset + (x * 4);
+                    temp[pixelOffset + 0] = (float)bSum;
+                    temp[pixelOffset + 1] = (float)gSum;
+                    temp[pixelOffset + 2] = (float)rSum;
+                    temp[pixelOffset + 3] = (float)aSum;
                 }
-            }
-
-            outB = (byte)Math.Clamp((int)Math.Round(bSum),0, 255);
-            outG = (byte)Math.Clamp((int)Math.Round(gSum),0, 255);
-            outR = (byte)Math.Clamp((int)Math.Round(rSum),0, 255);
-            outA = (byte)Math.Clamp((int)Math.Round(aSum),0, 255);
-                
+            });
         }
 
-        protected override double[,] GenerateKernel(int radius)
+        protected override void BlurVertical(float[] temp, byte[] dst, int width, int height, int stride, ParallelOptions options)
+        {
+            Parallel.For(0, height, options, y =>
+            {
+                int rowOffset = y * stride;
+
+                for (int x = 0; x < width; x++)
+                {
+                    double bSum = 0, gSum = 0, rSum=0, aSum=0;
+                    int colOffset = x * 4;
+                    for (int j = -_radius; j < _radius; j++)
+                    {
+                        int sampleY = Math.Clamp(y+j, 0, height-1);
+                        int sampleOffset = (sampleY * stride) + colOffset;
+                        double scale = _kernel[_radius + j];
+
+                        bSum += temp[sampleOffset + 0] * scale;
+                        gSum += temp[sampleOffset + 1] * scale;
+                        rSum += temp[sampleOffset + 2] * scale;
+                        aSum += temp[sampleOffset + 3] * scale;
+                    }
+
+                    int pixelOffset = rowOffset + colOffset;
+                    dst[pixelOffset + 0] = (byte)Math.Clamp((int)Math.Round(bSum), 0, 255);
+                    dst[pixelOffset + 1] = (byte)Math.Clamp((int)Math.Round(gSum), 0, 255);
+                    dst[pixelOffset + 2] = (byte)Math.Clamp((int)Math.Round(rSum), 0, 255);
+                    dst[pixelOffset + 3] = (byte)Math.Clamp((int)Math.Round(aSum), 0, 255);
+                }
+            });
+        }
+
+        protected override double[] GenerateKernel(int radius)
         {
             int side = radius * 2 + 1;
-            double[,] kernel = new double[side, side];
-            double sigma = radius / 2.0; // Standard deviation for Gaussian function
+            double[] kernel = new double[side];
+            double sigma = radius / 3.0; // Standard deviation for Gaussian function
             double twoSigmaSquare = 2.0 * sigma * sigma;
 
-            //TODO: add parallel execution to those loops
-            for (int row=0; row<side; row++)
-            {
-                for(int col=0; col<side; col++)
-                {
-                    // Calculating weights
-                    int radiusX = (radius - row);
-                    int radiusY = (radius - col);
-                    kernel[row, col] = Math.Exp(-(radiusX * radiusX + radiusY * radiusY) / twoSigmaSquare);
-                }
-            }
-
             double sum = 0.0;
-            foreach (var value in kernel)
+            for (int i = 0; i < side; i++)
             {
-                sum += value;
+                int x = i - radius;
+
+                kernel[i] = Math.Exp(-(x * x) / twoSigmaSquare);
+                sum += kernel[i];
             }
 
             // Kernel normalization
-            for (int row = 0; row < side; row++)
+            for (int i = 0; i < side; i++)
             {
-                for (int col = 0; col < side; col++)
-                {
-                    kernel[row, col] /= sum;
-                }
+                    kernel[i] /= sum;
             }
 
             return kernel;

@@ -1,14 +1,9 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Text;
-using System.Windows;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Microsoft.Win32;
 
 namespace gaussian_blur_x86_64_asm
 {
@@ -61,17 +56,17 @@ namespace gaussian_blur_x86_64_asm
             return _source != null;
         }
 
-        public Task ApplyWithCSharp(int radius,byte threadsCount)
+        public Task ApplyWithCSharp(int radius, byte threadsCount)
         {
             if (_source == null) return Task.CompletedTask;
-            
-                return Task.Run(() =>
-            {
-                _blurred?.Dispose();
-                var sourceCopy = _source;
-                CSharpGaussianBlur blur = new CSharpGaussianBlur(radius, ref sourceCopy, threadsCount);
-                _blurred = blur.GetBlurred(); 
-            });
+
+            return Task.Run(() =>
+        {
+            _blurred?.Dispose();
+            var sourceCopy = _source;
+            CSharpGaussianBlur blur = new CSharpGaussianBlur(radius, ref sourceCopy, threadsCount);
+            _blurred = blur.GetBlurred();
+        });
         }
 
         //TODO: Implement MASM solution

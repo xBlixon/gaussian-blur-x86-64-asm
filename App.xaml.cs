@@ -1,6 +1,4 @@
-﻿using System.Configuration;
-using System.Data;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Windows;
 
 namespace gaussian_blur_x86_64_asm
